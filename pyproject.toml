@@ -1,0 +1,70 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "streamline-sdk"
+version = "0.2.0"
+description = "Official Python SDK for Streamline - The Redis of Streaming"
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.9"
+authors = [
+    { name = "Streamline Authors" }
+]
+keywords = ["kafka", "streaming", "messaging", "queue", "streamline"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Framework :: AsyncIO",
+]
+dependencies = [
+    "aiokafka>=0.10.0",
+]
+
+[project.optional-dependencies]
+telemetry = [
+    "opentelemetry-api>=1.20.0",
+]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-benchmark>=4.0.0",
+    "mypy>=1.0.0",
+    "ruff>=0.1.0",
+    "opentelemetry-api>=1.20.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/streamlinelabs/streamline-python-sdk"
+Documentation = "https://github.com/streamlinelabs/streamline-python-sdk/tree/main/sdks/python-sdk"
+Repository = "https://github.com/streamlinelabs/streamline-python-sdk"
+Issues = "https://github.com/streamlinelabs/streamline-python-sdk/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["streamline_sdk"]
+artifacts = ["streamline_sdk/py.typed"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+python_files = ["test_*.py", "benchmark_*.py"]
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+
+[tool.ruff]
+target-version = "py39"
+line-length = 88
+select = ["E", "F", "I", "N", "W", "UP"]
