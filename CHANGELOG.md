@@ -1,6 +1,7 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+- perf: optimize message deserialization path (2026-02-22)
 - docs: add docstrings to public API methods (2026-02-22)
 - test: add unit tests for producer batching (2026-02-22)
 - refactor: improve consumer group coordinator logic (2026-02-22)
