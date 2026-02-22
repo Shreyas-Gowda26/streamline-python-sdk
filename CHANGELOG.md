@@ -1,6 +1,7 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+- fix: resolve asyncio event loop cleanup on shutdown (2026-02-22)
 - fix: resolve event loop handling in producer close (2026-02-20)
 - perf: optimize message batching with memoryview (2026-02-20)
 
