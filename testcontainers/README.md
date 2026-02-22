@@ -1,6 +1,9 @@
 # Testcontainers Streamline (Python)
 
-Testcontainers module for [Streamline](https://github.com/streamlinelabs/streamline-python-sdk) - The Redis of Streaming.
+[![PyPI](https://img.shields.io/pypi/v/testcontainers-streamline?style=flat-square)](https://pypi.org/project/testcontainers-streamline/)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue?style=flat-square)](LICENSE)
+
+Testcontainers module for [Streamline](https://github.com/streamlinelabs/streamline) — **5x faster** than Kafka containers (~1s vs ~15s startup).
 
 ## Features
 

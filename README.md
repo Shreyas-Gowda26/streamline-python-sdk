@@ -3,6 +3,7 @@
 Official Python client for [Streamline](https://github.com/streamlinelabs/streamline) — The Redis of Streaming.
 
 [![CI](https://github.com/streamlinelabs/streamline-python-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/streamlinelabs/streamline-python-sdk/actions/workflows/ci.yml)
+[![codecov](https://img.shields.io/codecov/c/github/streamlinelabs/streamline-python-sdk?style=flat-square)](https://codecov.io/gh/streamlinelabs/streamline-python-sdk)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](https://www.python.org/)
 [![PyPI](https://img.shields.io/pypi/v/streamline-sdk)](https://pypi.org/project/streamline-sdk/)
