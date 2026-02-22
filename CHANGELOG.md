@@ -1,6 +1,7 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+- docs: add docstrings to public API methods (2026-02-22)
 - test: add unit tests for producer batching (2026-02-22)
 - refactor: improve consumer group coordinator logic (2026-02-22)
 - fix: resolve asyncio event loop cleanup on shutdown (2026-02-22)
