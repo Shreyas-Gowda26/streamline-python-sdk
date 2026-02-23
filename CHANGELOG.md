@@ -1,18 +1,22 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
-- perf: optimize message deserialization path (2026-02-22)
-- docs: add docstrings to public API methods (2026-02-22)
-- test: add unit tests for producer batching (2026-02-22)
-- refactor: improve consumer group coordinator logic (2026-02-22)
-- fix: resolve asyncio event loop cleanup on shutdown (2026-02-22)
-- fix: resolve event loop handling in producer close (2026-02-20)
-- perf: optimize message batching with memoryview (2026-02-20)
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+### Fixed
+- Resolve asyncio event loop cleanup on shutdown
+- Resolve event loop handling in producer close
+
+### Changed
+- Improve consumer group coordinator logic
+
+### Performance
+- Optimize message deserialization path
+- Optimize message batching with memoryview
 
 ## [0.2.0] - 2026-02-18
 
