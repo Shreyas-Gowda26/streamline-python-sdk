@@ -1,6 +1,7 @@
 """Basic usage example for Streamline Python SDK."""
 
 import asyncio
+import os
 from streamline_sdk import StreamlineClient, TopicConfig
 
 
@@ -8,7 +9,7 @@ async def main():
     """Demonstrate basic SDK usage."""
     print("Connecting to Streamline...")
 
-    async with StreamlineClient(bootstrap_servers="localhost:9092") as client:
+    async with StreamlineClient(bootstrap_servers=os.environ.get("STREAMLINE_BOOTSTRAP_SERVERS", "localhost:9092")) as client:
         # Create a topic
         print("Creating topic...")
         try:

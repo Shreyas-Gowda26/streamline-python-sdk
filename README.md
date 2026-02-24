@@ -175,3 +175,10 @@ with StreamlineContainer() as streamline:
 Apache-2.0
 <!-- refactor: de37c839 -->
 <!-- fix: 380469bb -->
+
+## Security
+
+To report a security vulnerability, please email **security@streamline.dev**.
+Do **not** open a public issue.
+
+See the [Security Policy](https://github.com/streamlinelabs/streamline/blob/main/SECURITY.md) for details.

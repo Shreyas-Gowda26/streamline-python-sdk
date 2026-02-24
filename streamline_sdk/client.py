@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import os
 from dataclasses import dataclass, field
 from typing import Optional
 
@@ -30,7 +31,9 @@ class ClientConfig:
         ssl_keyfile: Path to client key.
     """
 
-    bootstrap_servers: str = "localhost:9092"
+    bootstrap_servers: str = field(
+        default_factory=lambda: os.environ.get("STREAMLINE_BOOTSTRAP_SERVERS", "localhost:9092")
+    )
     client_id: str = "streamline-python-client"
     request_timeout_ms: int = 30000
     metadata_max_age_ms: int = 300000
@@ -104,7 +107,7 @@ class StreamlineClient:
 
     def __init__(
         self,
-        bootstrap_servers: str = "localhost:9092",
+        bootstrap_servers: str = os.environ.get("STREAMLINE_BOOTSTRAP_SERVERS", "localhost:9092"),
         *,
         client_id: str = "streamline-python-client",
         client_config: Optional[ClientConfig] = None,

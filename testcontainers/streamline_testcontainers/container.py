@@ -269,3 +269,244 @@ class StreamlineContainer(DockerContainer):
             assert resp.status == 200, f"Health check returned status {resp.status}"
         except Exception as e:
             raise AssertionError(f"Health check failed: {e}")
+
+    # -------------------------------------------------------------------------
+    # Enhanced capabilities: batch produce, consumer groups, migration helpers
+    # -------------------------------------------------------------------------
+
+    def produce_messages(self, topic: str, messages: list[str]) -> None:
+        """
+        Produce a batch of messages to a topic.
+
+        Args:
+            topic: Topic name
+            messages: List of message values
+        """
+        for msg in messages:
+            self.produce_message(topic, msg)
+
+    def produce_keyed_messages(self, topic: str, messages: dict[str, str]) -> None:
+        """
+        Produce a batch of keyed messages to a topic.
+
+        Args:
+            topic: Topic name
+            messages: Dictionary of key to value
+        """
+        for key, value in messages.items():
+            self.produce_message(topic, value, key=key)
+
+    def list_consumer_groups(self) -> list[str]:
+        """
+        List consumer groups.
+
+        Returns:
+            List of consumer group IDs
+        """
+        exit_code, output = self.exec(
+            "streamline-cli groups list --format json"
+        )
+        if exit_code != 0:
+            raise RuntimeError(f"Failed to list consumer groups: {output}")
+        groups = []
+        for line in output.strip().split("\n"):
+            cleaned = line.strip().strip('[],"')
+            if cleaned:
+                groups.append(cleaned)
+        return groups
+
+    def assert_consumer_group_exists(self, group_id: str) -> None:
+        """
+        Assert that a consumer group exists.
+
+        Args:
+            group_id: Consumer group ID
+
+        Raises:
+            AssertionError: If the group does not exist
+        """
+        exit_code, _ = self.exec(
+            f"streamline-cli groups describe {group_id}"
+        )
+        assert exit_code == 0, f"Consumer group '{group_id}' does not exist"
+
+    def get_partition_count(self, topic: str) -> int:
+        """
+        Get the partition count for a topic.
+
+        Args:
+            topic: Topic name
+
+        Returns:
+            Number of partitions
+        """
+        exit_code, output = self.exec(
+            f"streamline-cli topics describe {topic} --format json"
+        )
+        if exit_code != 0:
+            raise RuntimeError(f"Topic '{topic}' not found")
+        import json
+        try:
+            data = json.loads(output)
+            return data.get("partitions", 1) if isinstance(data, dict) else 1
+        except json.JSONDecodeError:
+            return 1
+
+    def assert_partition_count(self, topic: str, expected: int) -> None:
+        """
+        Assert that a topic has the expected partition count.
+
+        Args:
+            topic: Topic name
+            expected: Expected number of partitions
+
+        Raises:
+            AssertionError: If partition count doesn't match
+        """
+        actual = self.get_partition_count(topic)
+        assert actual == expected, (
+            f"Expected {expected} partitions for topic '{topic}', got {actual}"
+        )
+
+    def get_cluster_info(self) -> dict:
+        """
+        Get cluster information from the HTTP API.
+
+        Returns:
+            Cluster info as a dictionary
+        """
+        import urllib.request
+        import json
+        resp = urllib.request.urlopen(self.get_info_url(), timeout=5)
+        return json.loads(resp.read().decode())
+
+    def with_authentication(self, username: str, password: str) -> "StreamlineContainer":
+        """
+        Enable SASL/PLAIN authentication.
+
+        Args:
+            username: Admin username
+            password: Admin password
+
+        Returns:
+            self for method chaining
+        """
+        self.with_env("STREAMLINE_AUTH_ENABLED", "true")
+        self.with_env("STREAMLINE_AUTH_DEFAULT_USER", username)
+        self.with_env("STREAMLINE_AUTH_DEFAULT_PASSWORD", password)
+        return self
+
+    def with_auto_create_topics(self, default_partitions: int = 1) -> "StreamlineContainer":
+        """
+        Enable auto-topic creation with a default partition count.
+
+        Args:
+            default_partitions: Default partition count for auto-created topics
+
+        Returns:
+            self for method chaining
+        """
+        self.with_env("STREAMLINE_AUTO_CREATE_TOPICS", "true")
+        self.with_env("STREAMLINE_DEFAULT_PARTITIONS", str(default_partitions))
+        return self
+
+    @classmethod
+    def as_kafka_replacement(cls) -> "StreamlineContainer":
+        """
+        Create a Streamline container configured as a drop-in Kafka replacement.
+
+        Useful for migrating from Kafka-based tests. Simply replace::
+
+            # Before (Kafka):
+            container = KafkaContainer("confluentinc/cp-kafka:7.4.0")
+
+            # After (Streamline):
+            container = StreamlineContainer.as_kafka_replacement()
+
+        Returns:
+            A new StreamlineContainer configured for Kafka compatibility
+        """
+        return cls().with_in_memory().with_auto_create_topics(1)
+
+    @classmethod
+    def with_pre_configured_topics(
+        cls, topics: dict[str, int]
+    ) -> "StreamlineContainer":
+        """
+        Create a container pre-configured with topics.
+
+        Args:
+            topics: Dictionary of topic name to partition count
+
+        Returns:
+            A new StreamlineContainer with pre-configured topics
+        """
+        container = cls().with_in_memory()
+        for name, partitions in topics.items():
+            container.with_env(f"STREAMLINE_AUTO_TOPIC_{name}", str(partitions))
+        return container
+
+    def with_ephemeral(self) -> "StreamlineContainer":
+        """
+        Enable ephemeral mode: in-memory, auto-cleanup, fastest startup.
+
+        The server will auto-shutdown after the idle timeout if no clients
+        are connected.
+
+        Returns:
+            This container instance for method chaining
+        """
+        self.with_env("STREAMLINE_EPHEMERAL", "true")
+        self.with_env("STREAMLINE_IN_MEMORY", "true")
+        return self
+
+    def with_ephemeral_idle_timeout(self, seconds: int) -> "StreamlineContainer":
+        """
+        Set the idle timeout before ephemeral server auto-shuts down.
+
+        Args:
+            seconds: Seconds to wait with zero connections before shutdown
+
+        Returns:
+            This container instance for method chaining
+        """
+        self.with_env("STREAMLINE_EPHEMERAL_IDLE_TIMEOUT", str(seconds))
+        return self
+
+    def with_ephemeral_auto_topics(self, topic_specs: str) -> "StreamlineContainer":
+        """
+        Auto-create topics on startup in ephemeral mode.
+
+        Args:
+            topic_specs: Comma-separated "name:partitions" specs
+                         e.g., "orders:3,events:6,logs:1"
+
+        Returns:
+            This container instance for method chaining
+        """
+        self.with_env("STREAMLINE_EPHEMERAL_AUTO_TOPICS", topic_specs)
+        return self
+
+    @classmethod
+    def for_testing(cls) -> "StreamlineContainer":
+        """
+        Create a container optimized for CI/CD testing.
+
+        Ephemeral mode, in-memory, auto-create topics, minimal logging.
+
+        Example::
+
+            @pytest.fixture(scope="session")
+            def streamline():
+                with StreamlineContainer.for_testing() as container:
+                    yield container
+
+        Returns:
+            A new StreamlineContainer optimized for testing
+        """
+        return (
+            cls()
+            .with_ephemeral()
+            .with_auto_create_topics(3)
+            .with_log_level("warn")
+        )
